@@ -10,7 +10,7 @@ import sys
 from typing import Optional
 
 
-def get_supported_model(preferred_name: str = "gemini-1.5-flash") -> str:
+def get_supported_model(preferred_name: str = "gemini-2.5-flash") -> str:
     """Finds the best available model supporting generateContent from the API."""
     import google.generativeai as genai
     try:

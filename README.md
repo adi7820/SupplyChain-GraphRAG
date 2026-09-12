@@ -15,6 +15,19 @@ Whenever a branch following the naming conventions below is pushed to GitHub, an
 - `fix/**` (e.g. `fix/api-cors-issue`)
 - `chore/**` (e.g. `chore/update-deps`)
 
+### Automated PR Code Review Comments
+Whenever a Pull Request is opened or updated, the **Automated PR Code Reviewer** (`.github/workflows/pr-review.yml`) triggers:
+1. **Diff Extraction**: Computes the exact code diff targeting `main`.
+2. **Gemini Code Review**: If `GEMINI_API_KEY` is configured in repository secrets, Google Gemini (`gemini-1.5-flash`) reviews the diff for architecture, potential bugs, security concerns, and actionable recommendations.
+3. **Automated PR Comment**: Posts the structured review directly as a comment on the Pull Request.
+
+> [!TIP]
+> **Enable Gemini AI Code Reviews**:
+> 1. In your GitHub repository, go to **Settings** > **Secrets and variables** > **Actions**.
+> 2. Click **New repository secret**.
+> 3. Name: `GEMINI_API_KEY`, Value: `<Your Google Gemini API Key>`.
+> 4. Click **Add secret**. Future PRs will automatically receive full Gemini AI code review comments!
+
 ### Workflow Behavior
 1. **Deduplication**: Checks if an open PR already exists for the head branch to prevent duplicates.
 2. **Auto Title Generation**: Converts the branch slug into a clear title (e.g. `feature/vector-search` → `[feature] Vector Search`).

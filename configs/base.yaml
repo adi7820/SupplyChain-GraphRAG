@@ -21,3 +21,5 @@ retrieval:
   graph_anchor_top_k: 4
   max_hops: 3
   max_context_chars: 12000
+
+base_url: https://openrouter.ai/api/v1

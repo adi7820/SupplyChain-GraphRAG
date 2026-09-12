@@ -1,0 +1,20 @@
+[project]
+name = "supplychain-graphrag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Aditya Gupta", email = "adityagupta061@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "anyio>=4.15.1",
+    "dotenv>=0.9.9",
+]
+
+[project.scripts]
+supplychain-graphrag = "supplychain_graphrag:main"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"

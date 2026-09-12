@@ -1,0 +1,73 @@
+name: Automated PR Creator
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'fix/**'
+      - 'chore/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pr:
+    name: Open Pull Request to Main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Existing PR & Create if Needed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          echo "Checking if a Pull Request already exists for branch: $BRANCH_NAME"
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --base main --state open --json number --jq '.[0].number')
+
+          if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
+            echo "PR #$EXISTING_PR already exists for branch $BRANCH_NAME. Skipping PR creation."
+            exit 0
+          fi
+
+          # Extract friendly title from branch name
+          CLEAN_TITLE=$(echo "$BRANCH_NAME" | sed -E 's/^(feature|fix|chore)\///' | tr '-' ' ' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
+          PR_TYPE=$(echo "$BRANCH_NAME" | cut -d'/' -f1)
+          TITLE="[$PR_TYPE] $CLEAN_TITLE"
+
+          # Generate commit history body
+          COMMITS=$(git log origin/main..HEAD --pretty=format:"- %s (%h)" 2>/dev/null || git log -5 --pretty=format:"- %s (%h)")
+
+          cat <<EOF > pr_body.md
+## Automated Pull Request
+
+This PR was automatically opened by the **Automated PR Creator** workflow upon pushing to \`$BRANCH_NAME\`.
+
+### Branch Information
+- **Source Branch**: \`$BRANCH_NAME\`
+- **Target Branch**: \`main\`
+- **Triggered By**: @${{ github.actor }}
+
+### Commits Included
+$COMMITS
+
+---
+
+### PR Checklist
+- [ ] Code follows repository style and quality guidelines
+- [ ] Tests and verifications have been performed
+- [ ] Documentation updated where relevant
+
+*Created automatically by GitHub Actions.*
+EOF
+
+          echo "Opening PR: $TITLE"
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --title "$TITLE" \
+            --body-file pr_body.md

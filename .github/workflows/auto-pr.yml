@@ -24,6 +24,7 @@ jobs:
       - name: Check Existing PR & Create if Needed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           BRANCH_NAME: ${{ github.ref_name }}
         run: |
           echo "Checking if a Pull Request already exists for branch: $BRANCH_NAME"
@@ -42,28 +43,28 @@ jobs:
           # Generate commit history body
           COMMITS=$(git log origin/main..HEAD --pretty=format:"- %s (%h)" 2>/dev/null || git log -5 --pretty=format:"- %s (%h)")
 
-          cat <<EOF > pr_body.md
-## Automated Pull Request
-
-This PR was automatically opened by the **Automated PR Creator** workflow upon pushing to \`$BRANCH_NAME\`.
-
-### Branch Information
-- **Source Branch**: \`$BRANCH_NAME\`
-- **Target Branch**: \`main\`
-- **Triggered By**: @${{ github.actor }}
-
-### Commits Included
-$COMMITS
-
----
-
-### PR Checklist
-- [ ] Code follows repository style and quality guidelines
-- [ ] Tests and verifications have been performed
-- [ ] Documentation updated where relevant
-
-*Created automatically by GitHub Actions.*
-EOF
+          {
+            echo "## Automated Pull Request"
+            echo ""
+            echo "This PR was automatically opened by the **Automated PR Creator** workflow upon pushing to \`$BRANCH_NAME\`."
+            echo ""
+            echo "### Branch Information"
+            echo "- **Source Branch**: \`$BRANCH_NAME\`"
+            echo "- **Target Branch**: \`main\`"
+            echo "- **Triggered By**: @${{ github.actor }}"
+            echo ""
+            echo "### Commits Included"
+            echo "$COMMITS"
+            echo ""
+            echo "---"
+            echo ""
+            echo "### PR Checklist"
+            echo "- [ ] Code follows repository style and quality guidelines"
+            echo "- [ ] Tests and verifications have been performed"
+            echo "- [ ] Documentation updated where relevant"
+            echo ""
+            echo "*Created automatically by GitHub Actions.*"
+          } > pr_body.md
 
           echo "Opening PR: $TITLE"
           gh pr create \

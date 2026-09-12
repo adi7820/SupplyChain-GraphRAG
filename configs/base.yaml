@@ -1,0 +1,23 @@
+llm:
+  model: "nex-agi/nex-n2.5-pro:free"
+  temperature: 0.0
+  max_output_tokens: 8192            # reasoning AND the visible answer
+  extraction_max_output_tokens: 8192
+  extraction_thinking_budget: 0      # extraction has nothing to deliberate about
+  enable_thinking: false
+
+embedding:
+  model: "nvidia/nemotron-3-embed-1b:free"
+  dimensions: 2048                    # MUST equal the vector index dimension
+  batch_size: 32
+
+chunking:
+  chunk_size: 900                    # about one document section
+  chunk_overlap: 150
+  min_chunk_chars: 120
+
+retrieval:
+  vector_top_k: 5
+  graph_anchor_top_k: 4
+  max_hops: 3
+  max_context_chars: 12000

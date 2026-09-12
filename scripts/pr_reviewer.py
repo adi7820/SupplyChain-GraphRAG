@@ -10,12 +10,40 @@ import sys
 from typing import Optional
 
 
+def get_supported_model(preferred_name: str = "gemini-1.5-flash") -> str:
+    """Finds the best available model supporting generateContent from the API."""
+    import google.generativeai as genai
+    try:
+        available = [
+            m.name for m in genai.list_models()
+            if "generateContent" in m.supported_generation_methods
+        ]
+        # Clean model names (strip 'models/' prefix if present)
+        clean_available = [m.replace("models/", "") for m in available]
+
+        # Check preferred first
+        if preferred_name in clean_available:
+            return preferred_name
+
+        # Check standard priority order
+        for candidate in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
+            if candidate in clean_available:
+                return candidate
+
+        if clean_available:
+            return clean_available[0]
+    except Exception:
+        pass
+    return preferred_name
+
+
 def generate_gemini_review(diff_text: str, api_key: str, model_name: str = "gemini-1.5-flash") -> str:
     """Uses Google Gemini model to review the code changes in the PR diff."""
     import google.generativeai as genai
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name)
+    resolved_model = get_supported_model(model_name)
+    model = genai.GenerativeModel(resolved_model)
 
     prompt = (
         "You are an expert senior software engineer and code reviewer.\n"

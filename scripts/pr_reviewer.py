@@ -14,19 +14,36 @@ def get_supported_model(preferred_name: str = "gemini-1.5-flash") -> str:
     """Finds the best available model supporting generateContent from the API."""
     import google.generativeai as genai
     try:
-        available = [
-            m.name for m in genai.list_models()
-            if "generateContent" in m.supported_generation_methods
+        models = list(genai.list_models())
+        content_models = [
+            m.name for m in models
+            if hasattr(m, "supported_generation_methods") and "generateContent" in m.supported_generation_methods
         ]
-        # Match candidate in model names (e.g. 'models/gemini-1.5-flash')
-        for candidate in [preferred_name, "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
-            for m in available:
-                if candidate in m:
+        print(f"Discovered available models: {content_models}")
+
+        candidates = [
+            preferred_name,
+            f"models/{preferred_name}",
+            "gemini-1.5-flash",
+            "models/gemini-1.5-flash",
+            "gemini-1.5-flash-latest",
+            "models/gemini-1.5-flash-latest",
+            "gemini-1.5-pro",
+            "models/gemini-1.5-pro",
+            "gemini-pro",
+            "models/gemini-pro"
+        ]
+        for cand in candidates:
+            for m in content_models:
+                if cand == m or cand == m.replace("models/", ""):
+                    print(f"Selected Gemini model: {m}")
                     return m
-        if available:
-            return available[0]
+
+        if content_models:
+            print(f"Defaulting to first available content model: {content_models[0]}")
+            return content_models[0]
     except Exception as e:
-        print(f"Model listing fallback notice: {e}")
+        print(f"Model listing notice: {e}")
     return preferred_name
 
 

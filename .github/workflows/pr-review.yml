@@ -39,6 +39,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           python scripts/pr_reviewer.py --diff-file pr_diff.txt --output-file pr_review.md
+          echo "=== GENERATED CODE REVIEW ==="
+          cat pr_review.md
+          echo "=============================="
 
       - name: Post Review Comment to Pull Request
         env:
@@ -46,5 +49,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          echo "Posting code review comment to PR #$PR_NUMBER..."
-          gh pr comment "$PR_NUMBER" --body-file pr_review.md
+          echo "Posting code review comment to PR #$PR_NUMBER in repo $GH_REPO..."
+          gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body-file pr_review.md
+          echo "Comment posted successfully."

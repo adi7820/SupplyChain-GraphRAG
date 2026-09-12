@@ -18,22 +18,15 @@ def get_supported_model(preferred_name: str = "gemini-1.5-flash") -> str:
             m.name for m in genai.list_models()
             if "generateContent" in m.supported_generation_methods
         ]
-        # Clean model names (strip 'models/' prefix if present)
-        clean_available = [m.replace("models/", "") for m in available]
-
-        # Check preferred first
-        if preferred_name in clean_available:
-            return preferred_name
-
-        # Check standard priority order
-        for candidate in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
-            if candidate in clean_available:
-                return candidate
-
-        if clean_available:
-            return clean_available[0]
-    except Exception:
-        pass
+        # Match candidate in model names (e.g. 'models/gemini-1.5-flash')
+        for candidate in [preferred_name, "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
+            for m in available:
+                if candidate in m:
+                    return m
+        if available:
+            return available[0]
+    except Exception as e:
+        print(f"Model listing fallback notice: {e}")
     return preferred_name
 
 

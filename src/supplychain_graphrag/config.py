@@ -18,6 +18,13 @@ def _is_placeholder(value: str) -> bool:
 class ConfigError(RuntimeError):
     """Raised with an actionable message when setup is incomplete."""
 
+@dataclass(frozen=True)
+class Neo4jSettings:
+    uri: str
+    user: str
+    password: str
+    database: str
+
 class Config:
     def __init__(self, path: Path | str | None = None) -> None:
         self.root = PROJECT_ROOT
@@ -48,8 +55,25 @@ class Config:
 
     @property
     def base_url(self) -> str:
-        env_url = (os.getenv("OPENROUTER_BASE_URL") or "").strip().strip("'").strip('"')
-        return env_url or self._data.get("base_url", "https://openrouter.ai/api/v1")
+        return (os.getenv("OPENROUTER_BASE_URL") or "").strip().strip("'").strip('"')
+
+    @property
+    def neo4j(self) -> Neo4jSettings:
+        password = (os.getenv("NEO4J_PASSWORD") or "").strip().strip("'").strip('"')
+        if not password:
+            raise ConfigError(
+                "NEO4J_PASSWORD is not set.  Copy .env.example to .env - the "
+                "defaults in it match the bundled docker-compose.yml, so "
+                "`docker compose up -d` plus that copy is all you need."
+            )
+        
+        return Neo4jSettings(
+            uri=(os.getenv("NEO4J_URI") or "bolt://localhost:7687").strip().strip("'"'"'),
+            user=(os.getenv("NEO4J_USER") or "neo4j").strip().strip("'"'"'),
+            password=password,
+            database=(os.getenv("NEO4J_DATABASE") or "neo4j").strip().strip("'"'"'),
+        )
+        
 
 _cached: Config | None = None
 

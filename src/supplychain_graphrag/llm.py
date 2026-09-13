@@ -75,7 +75,7 @@ class LLMClient:
         # self.usage.add
         return resp.choices[0].message.content
       except Exception as e:
-        last = exec
+        last = e
         if not _is_retryable(e) or attempt == attempts - 1:
             raise
         delay = 2 ** attempt

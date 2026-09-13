@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
 _PLACEHOLDERS = ("your-", "changeme", "xxx", "<", "replace-me")
@@ -48,7 +48,8 @@ class Config:
 
     @property
     def base_url(self) -> str:
-        return (os.getenv("OPENROUTER_BASE_URL") or "").strip().strip("'").strip('"')
+        env_url = (os.getenv("OPENROUTER_BASE_URL") or "").strip().strip("'").strip('"')
+        return env_url or self._data.get("base_url", "https://openrouter.ai/api/v1")
 
 _cached: Config | None = None
 

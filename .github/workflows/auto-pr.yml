@@ -3,9 +3,8 @@ name: Automated PR Creator
 on:
   push:
     branches:
-      - 'feature/**'
-      - 'fix/**'
-      - 'chore/**'
+      - '**'
+      - '!main'
 
 permissions:
   contents: read
@@ -36,9 +35,21 @@ jobs:
           fi
 
           # Extract friendly title from branch name
-          CLEAN_TITLE=$(echo "$BRANCH_NAME" | sed -E 's/^(feature|fix|chore)\///' | tr '-' ' ' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
-          PR_TYPE=$(echo "$BRANCH_NAME" | cut -d'/' -f1)
-          TITLE="[$PR_TYPE] $CLEAN_TITLE"
+          if [[ "$BRANCH_NAME" =~ / ]]; then
+            PR_TYPE=$(echo "$BRANCH_NAME" | cut -d'/' -f1)
+            RAW_TITLE=$(echo "$BRANCH_NAME" | cut -d'/' -f2-)
+          else
+            PR_TYPE=""
+            RAW_TITLE="$BRANCH_NAME"
+          fi
+
+          CLEAN_TITLE=$(echo "$RAW_TITLE" | tr '-' ' ' | tr '_' ' ' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
+
+          if [ -n "$PR_TYPE" ]; then
+            TITLE="[$PR_TYPE] $CLEAN_TITLE"
+          else
+            TITLE="$CLEAN_TITLE"
+          fi
 
           # Generate commit history body
           COMMITS=$(git log origin/main..HEAD --pretty=format:"- %s (%h)" 2>/dev/null || git log -5 --pretty=format:"- %s (%h)")
